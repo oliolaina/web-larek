@@ -21,6 +21,7 @@ export interface IUser {
     resetAll(): void;
 } 
 
+//хранилище товаров
 export interface IProductCollection {
     __amount: number;
     __items: ProductItem[];
@@ -33,7 +34,7 @@ export interface ICatalog extends IProductCollection {
     refill(products: ProductList): void;
 }
 
-export interface IBusket extends IProductCollection {
+export interface IBasket extends IProductCollection {
     constructor(): void;
     add(): void;
     remove(id: string): void;
@@ -68,6 +69,15 @@ export type ErrorResponse = {
     error: string
 }
 
+
+export interface IApiModel {
+    cdn: string;
+    items: ProductItem[];
+    getListProductCard: () => Promise<ProductItem[]>;
+    postOrderLot: (order: OrderInfo) => Promise<Order>;
+  }
+
+  
 export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 export type GetProductItemResponse = ProductList | ErrorResponse;
 
@@ -103,7 +113,7 @@ export interface ICard extends IView {// Интерфейс для карточ�
     setProduct(data: ProductItem): void;    
 }
 
-export interface IBusketItem extends ICard {// Интерфейс для элемента корзины
+export interface IBasketItem extends ICard {// Интерфейс для элемента корзины
     onRemove(): void;
 }
 
@@ -126,6 +136,6 @@ export interface IModalForm extends IModal {// Интерфейс для мод�
 }
 
 export type FormError = 'address' | 'email' | 'phone';
-export type BuyButtonState = 'disabled' | 'already' | 'able';
+export type BuyButtonState = 'disabled' | 'able';
 
 

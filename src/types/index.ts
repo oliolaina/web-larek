@@ -23,21 +23,19 @@ export interface IUser {
 
 //хранилище товаров
 export interface IProductCollection {
-    __amount: number;
-    __items: ProductItem[];
-    getItems(): ProductItem[];
-    isEmpty(): boolean;
+    getAmount: () => number;
+    basketProducts: ProductItem[];
 }
 
-export interface ICatalog extends IProductCollection {
-    constructor(products?: ProductList): void;
-    refill(products: ProductList): void;
+export interface ICatalog {
+    productCards: ProductItem[];
+    selectedСard: ProductItem;
+    open(item: ProductItem): void;
 }
 
 export interface IBasket extends IProductCollection {
-    constructor(): void;
-    add(): void;
-    remove(id: string): void;
+    add(data: ProductItem): void;
+    remove(item: ProductItem): void;
     clear(): void;
     calcTotalSum(): number;
 }
@@ -77,7 +75,7 @@ export interface IApiModel {
     postOrderLot: (order: OrderInfo) => Promise<Order>;
   }
 
-  
+
 export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 export type GetProductItemResponse = ProductList | ErrorResponse;
 

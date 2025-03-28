@@ -1,27 +1,53 @@
-import { ApiListResponse, Api } from '../base/api'
-import { OrderInfo, Order, ProductItem } from '../../types';
+import { ProductItem, IBasket } from "../../types";
 
-export class ApiModel extends Api {
-  cdn: string;
-  items: ProductItem[];
+export class BasketModel implements IBasket {
+  // список карточек товара в корзине
+  protected _basketProducts: ProductItem[]; 
 
-  constructor(cdn: string, baseUrl: string, options?: RequestInit) {
-    super(baseUrl, options);
-    this.cdn = cdn;
+  //инициализация пустого списка товаров в конструкторе
+  constructor() {
+    this._basketProducts = [];
   }
 
-  // получение карточек с сервера
-  getListProductCard(): Promise<ProductItem[]> {
-    return this.get('/product').then((data: ApiListResponse<ProductItem>) =>
-      data.items.map((item) => ({
-        ...item,
-        image: this.cdn + item.image,
-      }))
-    );
+  //сеттер содержимого корзины
+  set basketProducts(data: ProductItem[]) {
+    this._basketProducts = data;
   }
 
-  // ответ от сервера по совершённому заказу
-  postOrderLot(order: OrderInfo): Promise<Order> {
-    return this.post(`/order`, order).then((data: Order) => data);
+  //геттер товаров корзины
+  get basketProducts() {
+    return this._basketProducts;
+  }
+
+  // количество товаров в корзине
+  getAmount() {
+    return this.basketProducts.length;
+  }
+
+  // сумма всех товаров в корзине
+  calcTotalSum() {
+    let sumAll = 0;
+    this.basketProducts.forEach(item => {
+      sumAll = sumAll + item.price;
+    });
+    return sumAll;
+  }
+
+  // добавить карточку товара в корзину
+  add(data: ProductItem) {
+    this._basketProducts.push(data);
+  }
+
+  // удалить карточку товара из корзины
+  remove(item: ProductItem) {
+    const index = this._basketProducts.indexOf(item);
+    if (index >= 0) {
+      this._basketProducts.splice(index, 1);
+    }
+  }
+
+  //очистить корзину
+  clear() {
+    this.basketProducts = []
   }
 }

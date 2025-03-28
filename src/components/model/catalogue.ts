@@ -1,7 +1,7 @@
 import { ProductItem, ICatalog } from "../../types";
 import { IEvents } from "../base/events";
 
-export class DataModel implements ICatalog {
+export class CatalogModel implements ICatalog {
   protected _productCards: ProductItem[];
   selectedСard: ProductItem;
 

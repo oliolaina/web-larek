@@ -1,27 +1,103 @@
-import { ApiListResponse, Api } from '../base/api'
-import { OrderInfo, Order, ProductItem } from '../../types';
+import { IEvents } from '../base/events';
+import { FormError, IUserInfoModel, PaymentType } from '../../types/index'
 
-export class ApiModel extends Api {
-  cdn: string;
-  items: ProductItem[];
 
-  constructor(cdn: string, baseUrl: string, options?: RequestInit) {
-    super(baseUrl, options);
-    this.cdn = cdn;
+export class userInfoModel implements IUserInfoModel {
+  payment: PaymentType;
+  email: string;
+  phone: string;
+  address: string;
+  total: number;
+  items: string[];
+  formErrors: FormError = {};
+
+  constructor(protected events: IEvents) {
+    this.payment = '';
+    this.email = '';
+    this.phone = '';
+    this.address = '';
+    this.total = 0;
+    this.items = [];
   }
 
-  // получение карточек с сервера
-  getListProductCard(): Promise<ProductItem[]> {
-    return this.get('/product').then((data: ApiListResponse<ProductItem>) =>
-      data.items.map((item) => ({
-        ...item,
-        image: this.cdn + item.image,
-      }))
-    );
+  // принимаем значение поля с адресом
+  setOrderAddress(field: string, value: string) {
+    if (field === 'address') {
+      this.address = value;
+    }
+
+    if (this.validateOrder()) {
+      this.events.emit('order:ready', this.getOrderLot());
+    }
   }
 
-  // ответ от сервера по совершённому заказу
-  postOrderLot(order: OrderInfo): Promise<Order> {
-    return this.post(`/order`, order).then((data: Order) => data);
+  // валидация данных адреса
+  validateOrder() {
+    const regexp = /^[а-яА-ЯёЁa-zA-Z0-9\s\/.,-]{7,}$/;
+    const errors: typeof this.formErrors = {};
+
+    if (!this.address) {
+      errors.address = 'Необходимо указать адрес'
+    } else if (!regexp.test(this.address)) {
+      errors.address = 'Укажите настоящий адрес'
+    } else if (!this.payment) {
+      errors.payment = 'Выберите способ оплаты'
+    }
+
+    this.formErrors = errors;
+    this.events.emit('formErrors:address', this.formErrors);
+    return Object.keys(errors).length === 0;
+  }
+
+  // принимаем значение данных Email и Телефон
+  setOrderData(field: string, value: string) {
+    if (field === 'email') {
+      this.email = value;
+    } else if (field === 'phone') {
+      this.phone = value;
+    }
+
+    if (this.validateContacts()) {
+      this.events.emit('order:ready', this.getOrderLot());
+    }
+  }
+
+  // Валидация данных Email и Телефон
+  validateContacts() {
+    const regexpEmail = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    const regexpPhone = /^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{10}$/;
+    const errors: typeof this.formErrors = {};
+
+    if (!this.email) {
+      errors.email = 'Необходимо указать email'
+    } else if (!regexpEmail.test(this.email)) {
+      errors.email = 'Некорректный адрес электронной почты'
+    }
+
+    if (this.phone.startsWith('8')) {
+      this.phone = '+7' + this.phone.slice(1);
+    }
+
+    if (!this.phone) {
+      errors.phone = 'Необходимо указать телефон'
+    } else if (!regexpPhone.test(this.phone)) {
+      errors.phone = 'Некорректный формат номера телефона'
+    }
+
+    this.formErrors = errors;
+    this.events.emit('formErrors:change', this.formErrors);
+    return Object.keys(errors).length === 0;
+  }
+  
+  //объект данных пользователя с выбранными товарами
+  getOrderLot() {
+    return {
+      payment: this.payment,
+      email: this.email,
+      phone: this.phone,
+      address: this.address,
+      total: this.total,
+      items: this.items,
+    }
   }
 }

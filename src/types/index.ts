@@ -1,7 +1,7 @@
 
 // Слой модели (Model)
 
-export type PaymentType = 'Онлайн' | 'При получении'
+export type PaymentType = 'Онлайн' | 'При получении' | ''
 export type OrderInfo = UserInfo & ProductList
 
 export type UserInfo = {
@@ -55,7 +55,7 @@ export type Category = 'софт-скил' | 'другое' | 'дополнит�
 
 export type ProductList = {
     total: number,
-    items: ProductItem[]
+    items: string[]
 }
 
 export type Order = {
@@ -66,6 +66,15 @@ export type Order = {
 export type ErrorResponse = {
     error: string
 }
+
+
+export interface IUserInfoModel extends UserInfo, ProductList {
+    setOrderAddress(field: string, value: string): void
+    validateOrder(): boolean;
+    setOrderData(field: string, value: string): void
+    validateContacts(): boolean;
+    getOrderLot(): object;
+  }
 
 
 export interface IApiModel {
@@ -133,7 +142,7 @@ export interface IModalForm extends IModal {// Интерфейс для мод�
     form: IForm;
 }
 
-export type FormError = 'address' | 'email' | 'phone';
+export type FormError = Partial<Record<keyof OrderInfo, string>>;
 export type BuyButtonState = 'disabled' | 'able';
 
 

@@ -10,7 +10,20 @@ export class itemCardPopup extends itemCard {
     super(template, events, actions);
     this.text = this._cardElement.querySelector('.card__text');
     this.button = this._cardElement.querySelector('.card__button');
-    this.button.addEventListener('click', () => { this.events.emit('card:addBasket') });
+    console.log('create',this.button);
+    this.button.addEventListener('click', () => { this.events.emit('card:addBasket', this.button) });
+  }
+
+  checkButton(item: ProductItem) : void{
+    console.log('check',this.button);
+    if ( item && item.inBasket === true){
+      this.button.setAttribute('disabled', 'true');
+      this.button.textContent = 'Уже в корзине';
+    } else {
+      this.button.removeAttribute('disabled');
+      this.button.textContent = 'Купить';
+    }
+    
   }
 
   checkSale(data:ProductItem) {
@@ -30,7 +43,8 @@ export class itemCardPopup extends itemCard {
     this._cardImage.alt = this._cardTitle.textContent;
     this._cardPrice.textContent = this.setPrice(data.price);
     this.text.textContent = data.description;
-    this.button.textContent = this.checkSale(data);
+    this.checkButton(data);
+    this.checkSale(data);
     return this._cardElement;
   }
 }

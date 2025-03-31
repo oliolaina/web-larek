@@ -7,6 +7,7 @@ export class itemCard {
   protected _cardTitle: HTMLElement;
   protected _cardImage: HTMLImageElement;
   protected _cardPrice: HTMLElement;
+  
   protected _colors = <Record<string, string>>{
     "дополнительное": "additional",
     "софт-скил": "soft",

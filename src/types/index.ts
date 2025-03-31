@@ -48,7 +48,8 @@ export type ProductItem = {
     image: string,
     title: string
     category: Category,
-    price: number | null
+    price: number | null,
+    inBasket?: boolean | null
 }
 
 export type Category = 'софт-скил' | 'другое' | 'дополнительное' | 'кнопка' | 'хард-скил';

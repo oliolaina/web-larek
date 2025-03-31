@@ -35,7 +35,7 @@ const UserInfoModel = new userInfoModel(events);
 const order = new DeliveryPopup(orderTemplate, events);
 const contacts = new Contacts(contactsTemplate, events);
 
-//Отображения карточек товара на странице
+//Отображение карточек товара на странице
 events.on('productCards:receive', () => {
   dataModel.productCards.forEach(item => {
     const card = new itemCard(cardCatalogTemplate, events, { onClick: () => events.emit('card:select', item) });
@@ -43,7 +43,7 @@ events.on('productCards:receive', () => {
   });
 });
 
-// Получить объект данных "IProductItem" карточки по которой кликнули
+// Получить объект данных карточки, по которой кликнули
 events.on('card:select', (item: ProductItem) => { dataModel.open(item) });
 
 //Открываем модальное окно карточки товара 
@@ -53,16 +53,19 @@ events.on('modalCard:open', (item: ProductItem) => {
   modal.render();
 });
 
-// Добавление карточки товара в корзину 
-events.on('card:addBasket', () => {
-  basketModel.add(dataModel.selectedСard); // добавить карточку товара в корзину
-  basket.renderHeaderBasketCounter(basketModel.getAmount()); // отобразить количество товара на иконке корзины
-  modal.close();
+// Добавление товара в корзину 
+events.on('card:addBasket', (button:HTMLElement) => {
+  basketModel.add(dataModel.selectedСard); // добавить карточку в корзину
+  dataModel.selectedСard.inBasket = true;
+  button.setAttribute('disabled', 'true');
+  button.textContent = 'Уже в корзине';
+  basket.renderHeaderBasketCounter(basketModel.getAmount()); // количество товаров на иконке корзины
+  //modal.close();
 });
 
 // Открытие модального окна корзины
 events.on('basket:open', () => {
-  basket.renderSumAllProducts(basketModel.calcTotalSum());  // отобразить сумма всех продуктов в корзине
+  basket.renderSumAllProducts(basketModel.calcTotalSum());  // сумма всех продуктов в корзине
   let i = 0;
   basket.items = basketModel.basketProducts.map((item:ProductItem) => {
     const basketItem = new BasketElement(cardBasketTemplate, events, { onClick: () => events.emit('basket:basketItemRemove', item) });
@@ -76,8 +79,8 @@ events.on('basket:open', () => {
 // Удаление карточки товара из корзины
 events.on('basket:basketItemRemove', (item: ProductItem) => {
   basketModel.remove(item);
-  basket.renderHeaderBasketCounter(basketModel.getAmount()); // отобразить количество товара на иконке корзины
-  basket.renderSumAllProducts(basketModel.calcTotalSum()); // отобразить сумма всех продуктов в корзине
+  basket.renderHeaderBasketCounter(basketModel.getAmount()); // отобразить количество товаров в корзине
+  basket.renderSumAllProducts(basketModel.calcTotalSum()); // отобразить сумму всех продуктов
   let i = 0;
   basket.items = basketModel.basketProducts.map((item:ProductItem) => {
     const basketItem = new BasketElement(cardBasketTemplate, events, { onClick: () => events.emit('basket:basketItemRemove', item) });
@@ -90,10 +93,10 @@ events.on('basket:basketItemRemove', (item: ProductItem) => {
 events.on('order:open', () => {
   modal.content = order.render();
   modal.render();
-  UserInfoModel.items = basketModel.basketProducts.map((item:ProductItem) => item.id); // передаём список id товаров которые покупаем
+  UserInfoModel.items = basketModel.basketProducts.map((item:ProductItem) => item.id); 
 });
 
-events.on('order:paymentSelection', (button: HTMLButtonElement) => { UserInfoModel.payment = button.name as PaymentType }) // передаём способ оплаты
+events.on('order:paymentSelection', (button: HTMLButtonElement) => { UserInfoModel.payment = button.name as PaymentType })
 
 // Отслеживаем изменение в поле в вода "адреса доставки" 
 events.on(`order:changeAddress`, (data: { field: string, value: string }) => {
@@ -140,7 +143,12 @@ events.on('success:open', () => {
     .catch(error => console.log(error));
 });
 
-events.on('success:close', () => modal.close());
+events.on('success:close', () => {
+  dataModel.productCards.forEach(item => {
+    item.inBasket = false;
+  });
+  modal.close();
+});
 
 // Блокируем прокрутку страницы при открытие модального окна 
 events.on('modal:open', () => {
